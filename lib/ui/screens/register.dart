@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:testing_app/services/auth.dart';
 import 'package:testing_app/ui/screens/login.dart';
 
+import 'home_screen.dart';
+
 class RegisterScreen extends StatelessWidget {
   final email = TextEditingController(),
       password = TextEditingController(),
@@ -22,7 +24,7 @@ class RegisterScreen extends StatelessWidget {
           TextButton.icon(
             onPressed: () {
               Route route = MaterialPageRoute(builder: (_) => LoginScreen());
-              Navigator.pushReplacement(context, route);
+              Navigator.push(context, route);
             },
             icon: Icon(Icons.account_circle),
             label: Text("Login"),
@@ -86,7 +88,13 @@ class RegisterScreen extends StatelessWidget {
               height: 32,
             ),
             ElevatedButton(
-              onPressed: () => UserAuthentication().signUp(email.text, password.text, phone.text, name.text),
+              onPressed: () async {
+                final result = await UserAuthentication().createUserWithEmailAndPassword(
+                    email.text, password.text, phone.text, name.text);
+                if (result != null) {
+                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => HomeScreen()), (route) => false);
+                }
+              },
               child: Text("Register"),
             ),
           ],

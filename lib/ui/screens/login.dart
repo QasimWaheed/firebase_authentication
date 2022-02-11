@@ -1,5 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:testing_app/services/auth.dart';
+import 'package:testing_app/ui/screens/home_screen.dart';
 import 'package:testing_app/ui/screens/register.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -54,7 +57,10 @@ class LoginScreen extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () async {
-                await UserAuthentication().loginWithEmailPassword(email.text, password.text);
+                final result = await UserAuthentication().signInWithEmailAndPassword(email.text, password.text);
+                if (result != null) {
+                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => HomeScreen()), (route) => false);
+                }
               },
               child: Text("Login"),
             ),

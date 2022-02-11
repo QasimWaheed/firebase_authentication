@@ -1,10 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+import 'package:testing_app/ui/widget/toaster.dart';
 
-class UserAuthentication {
+class UserAuthentication extends ChangeNotifier {
   final _auth = FirebaseAuth.instance;
 
+  FirebaseAuth auth() => _auth;
 
-  loginWithPhone(String phone) async {
+  verifyPhoneNumber(String phone) async {
     _auth.verifyPhoneNumber(
       phoneNumber: phone,
       verificationCompleted: (PhoneAuthCredential credential) async {
@@ -33,44 +36,65 @@ class UserAuthentication {
     );
   }
 
-  loginWithEmailPassword(String email, String password) {
+  Future<User?> signInWithEmailAndPassword(String email, String password) async {
     try {
-      _auth.signInWithEmailAndPassword(email: email, password: password).then((value) {
-        return value;
+      final result = await _auth.signInWithEmailAndPassword(email: email, password: password).then((user) async {
+        if (user.user != null && !user.user!.emailVerified) {
+          await user.user!.sendEmailVerification();
+        }
+        authStateChange();
+        return user.user;
+      }).catchError((error) {
+        print(error);
+        if (error.code == 'user-not-found') {
+          MyToaster.showToaster(error.message);
+          print('No user found for that email.');
+        } else if (error.code == 'wrong-password') {
+          MyToaster.showToaster(error.message);
+          print('Wrong password provided for that user.');
+        }
       });
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        print('No user found for that email.');
-      } else if (e.code == 'wrong-password') {
-        print('Wrong password provided for that user.');
-      }
+      return result;
+    } catch (e) {
+      print("Error::: ${e.toString()}");
+      return null;
     }
   }
 
-  signUp(String email, String password, String phone, String name) {
+  Future<User?> createUserWithEmailAndPassword(String email, String password, String phone, String name) async {
     try {
-      _auth.createUserWithEmailAndPassword(email: email, password: password).then((value) => authStateChange());
-    } on FirebaseAuthException catch (e) {
-      print("Error ::: ${e.toString()}");
-      if (e.code == 'firebase_auth') {
-        print('The password provided is too weak.');
-      } else if (e.code == 'email-already-in-use') {
-        print('The account already exists for that email.');
-      }
+     final result = await _auth.createUserWithEmailAndPassword(email: email, password: password).then((user) async {
+        if (user.user != null && !user.user!.emailVerified) {
+          await user.user!.sendEmailVerification();
+        }
+        authStateChange();
+        return user.user;
+      }).catchError((error) {
+        print(error.toString());
+        if (error.code == 'weak-password') {
+          MyToaster.showToaster(error.message);
+          print('The password provided is too weak.');
+        } else if (error.code == 'email-already-in-use') {
+          MyToaster.showToaster(error.message);
+          print('The account already exists for that email.');
+        }
+      });
+     return result;
     } catch (e) {
       print("Error ::: ${e.toString()}");
     }
+    return null;
   }
 
-  authStateChange() {
-    _auth.authStateChanges()
-        .listen((User? user) {
+  Stream<User> authStateChange() async* {
+    _auth.authStateChanges().listen((User? user) {
       if (user == null) {
-        print('User is currently signed out!');
+        MyToaster.showToaster('User is currently signed out!');
       } else {
-        print('User is signed in!');
+        MyToaster.showToaster('User is signed in!');
       }
     });
+    notifyListeners();
   }
 
   idTokenChanges() {
@@ -82,6 +106,7 @@ class UserAuthentication {
         print('User is signed in!');
       }
     });
+    notifyListeners();
   }
 
   userChanges() {
@@ -93,5 +118,10 @@ class UserAuthentication {
         print('User is signed in!');
       }
     });
+  }
+
+  logout() {
+    _auth.signOut();
+    notifyListeners();
   }
 }

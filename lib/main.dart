@@ -1,5 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:testing_app/services/auth.dart';
+import 'package:testing_app/ui/screens/home_screen.dart';
 import 'package:testing_app/ui/screens/login.dart';
 import 'package:testing_app/ui/screens/register.dart';
 
@@ -12,37 +16,57 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        inputDecorationTheme: InputDecorationTheme(
-          border: UnderlineInputBorder(
-            borderSide: BorderSide(
-              color: Colors.blue.shade700,
-              width: 2,
+    return ChangeNotifierProvider<UserAuthentication>(
+      create: (context) => UserAuthentication(),
+      child: Consumer<UserAuthentication>(
+        builder: (context, themeProvider, child) => MaterialApp(
+          title: 'Flutter Demo',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+            inputDecorationTheme: InputDecorationTheme(
+              border: UnderlineInputBorder(
+                borderSide: BorderSide(
+                  color: Colors.blue.shade700,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              filled: true,
             ),
-            borderRadius: BorderRadius.circular(16),
+            textButtonTheme: TextButtonThemeData(
+              style: ButtonStyle(
+                foregroundColor: MaterialStateProperty.all(Colors.white),
+              ),
+            ),
           ),
-          filled: true,
+          home: AuthGate(),
         ),
-        textButtonTheme: TextButtonThemeData(
-          style: ButtonStyle(
-            foregroundColor: MaterialStateProperty.all(Colors.white),
-
-          )
-        )
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
+class AuthGate extends StatelessWidget {
+  const AuthGate({Key? key}) : super(key: key);
 
-  final String title;
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return MyHomePage();
+          }
+          return HomeScreen();
+        });
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  MyHomePage({
+    Key? key,
+  }) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -53,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text("Splash Screen"),
       ),
       body: Center(
         child: Column(
@@ -61,12 +85,15 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             ElevatedButton(
               onPressed: () {
-                Route route = MaterialPageRoute(builder: (_) => RegisterScreen());
+                Route route =
+                    MaterialPageRoute(builder: (_) => RegisterScreen());
                 Navigator.push(context, route);
               },
               child: Text("Register"),
             ),
-            SizedBox(height: 16,),
+            SizedBox(
+              height: 16,
+            ),
             ElevatedButton(
               onPressed: () {
                 Route route = MaterialPageRoute(builder: (_) => LoginScreen());
