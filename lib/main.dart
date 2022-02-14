@@ -53,10 +53,10 @@ class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
+        stream: UserAuthentication().user,
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return MyHomePage();
+            return LoginScreen();
           }
           return HomeScreen();
         });
@@ -97,7 +97,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ElevatedButton(
               onPressed: () {
                 Route route = MaterialPageRoute(builder: (_) => LoginScreen());
-                Navigator.push(context, route);
+                Navigator.pushReplacement(context, route);
               },
               child: Text("Login"),
             ),
@@ -106,4 +106,34 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+}
+
+class Contact {
+  final String name;
+
+  const Contact({required this.name});
+}
+
+class ContactBook extends ValueNotifier<List<Contact>> {
+  ContactBook._sharedInstance() : super([]);
+  static final ContactBook _share = ContactBook._sharedInstance();
+  factory ContactBook() => _share;
+
+  final List<Contact> _contacts = [];
+
+  int get length => value.length;
+
+  void addContact({required Contact contact}) {
+    final contacts = value;
+    contacts.add(contact);
+    notifyListeners();
+  }
+
+  void remove({required Contact contact}) {
+    final contacts = value;
+    if (contacts.contains(contact))
+    _contacts.remove(contact);
+    notifyListeners();
+  }
+ Contact? contact({required int atIndex}) => value.length > atIndex ? value[atIndex] : null;
 }

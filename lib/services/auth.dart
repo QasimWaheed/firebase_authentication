@@ -5,6 +5,12 @@ import 'package:testing_app/ui/widget/toaster.dart';
 class UserAuthentication extends ChangeNotifier {
   final _auth = FirebaseAuth.instance;
 
+  UserAuthentication._sharedInstance();
+
+  static final UserAuthentication _userAuthentication = UserAuthentication._sharedInstance();
+
+  factory UserAuthentication() => _userAuthentication;
+
   FirebaseAuth auth() => _auth;
 
   verifyPhoneNumber(String phone) async {
@@ -123,5 +129,9 @@ class UserAuthentication extends ChangeNotifier {
   logout() {
     _auth.signOut();
     notifyListeners();
+  }
+
+  Stream<User?> get user {
+    return _auth.authStateChanges();
   }
 }
