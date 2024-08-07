@@ -59,6 +59,7 @@ class UserAuthentication extends ChangeNotifier {
           MyToaster.showToaster(error.message);
           print('Wrong password provided for that user.');
         }
+        return null;
       });
       return result;
     } catch (e) {
@@ -84,6 +85,7 @@ class UserAuthentication extends ChangeNotifier {
           MyToaster.showToaster(error.message);
           print('The account already exists for that email.');
         }
+        return null;
       });
      return result;
     } catch (e) {

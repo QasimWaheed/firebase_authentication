@@ -1,6 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:testing_app/services/auth.dart';
 import 'package:testing_app/ui/screens/home_screen.dart';
 import 'package:testing_app/ui/screens/register.dart';

@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
             ),
             textButtonTheme: TextButtonThemeData(
               style: ButtonStyle(
-                foregroundColor: MaterialStateProperty.all(Colors.white),
+                foregroundColor: WidgetStateProperty.all(Colors.white),
               ),
             ),
           ),
